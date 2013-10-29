@@ -22,7 +22,7 @@ class AptPlugin implements Plugin<Project> {
     def androidExtension = androidProject.plugins.hasPlugin('android')? 
       androidProject.plugins.getPlugin('android').extension : 
       androidProject.plugins.getPlugin('android-library').extension
-    androidExtension.applicationVariants.all { variant ->
+    androidExtension.applicationVariants.all {
       File aptOutputDir
       if (!androidProject.apt.outputDirName) {
         aptOutputDir = androidProject.file 'build/source/apt'
@@ -33,15 +33,16 @@ class AptPlugin implements Plugin<Project> {
       
       androidExtension.sourceSets[sourceSetName(variant)].java.srcDirs.addAll variantAptOutputDir.path
 
-      variant.javaCompile.options.compilerArgs.addAll '-processorpath', 
+      javaCompile.options.compilerArgs.addAll '-processorpath',
         androidProject.configurations.apt.asPath, '-s', variantAptOutputDir.path
 
-      variant.javaCompile.source = variant.javaCompile.source.filter { file ->
-        !file.path.startsWith(aptOutputDir.path)
+      javaCompile.source = javaCompile.source.filter {
+        !path.startsWith(aptOutputDir.path)
       }
 
-      variant.javaCompile.doFirst {
-        logger.info "Generating source:"
+      def variant = it
+      javaCompile.doFirst {
+        logger.info "Generating sources using the annotation processing tool:"
         logger.info "  Variant: ${variant.name}"
         logger.info "  Output directory: ${variantAptOutputDir}"
         
