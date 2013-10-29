@@ -1,0 +1,25 @@
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+
+publishing {
+	publications {
+   maven(MavenPublication) {
+     groupId = 'com.jimdo.gradle'
+     artifactId = 'gradle-apt-plugin'
+     version = '0.1-SNAPSHOT'
+
+     from components.java
+   }
+ }
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile gradleApi()
+  compile "org.codehaus.groovy:groovy-all:1.8.6"
+
+  testCompile "org.spockframework:spock-core:0.6-groovy-1.8"
+}
