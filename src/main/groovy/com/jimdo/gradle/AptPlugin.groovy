@@ -29,15 +29,15 @@ class AptPlugin implements Plugin<Project> {
       } else {
         aptOutputDir = androidProject.file outputDirName
       }
-      File variantAptOutputDir = androidProject.file("$aptOutputDir/$variant.dirName")  
+      File variantAptOutputDir = androidProject.file("$aptOutputDir/$dirName")
       
-      androidExtension.sourceSets[sourceSetName(variant)].java.srcDirs.addAll variantAptOutputDir.path
+      androidExtension.sourceSets[sourceSetName(it)].java.srcDirs.addAll variantAptOutputDir.path
 
       javaCompile.options.compilerArgs.addAll '-processorpath',
         androidProject.configurations.apt.asPath, '-s', variantAptOutputDir.path
 
       javaCompile.source = javaCompile.source.filter {
-        !path.startsWith(aptOutputDir.path)
+        !it.path.startsWith(aptOutputDir.path)
       }
 
       def variant = it
