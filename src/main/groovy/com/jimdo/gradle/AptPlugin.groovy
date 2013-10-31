@@ -25,7 +25,7 @@ class AptPlugin implements Plugin<Project> {
     } else {
       aptOutputDir = project.file outputDirName
     }
-    project.task('addAptOptionsToCompileJava') << {
+    project.task('addAptCompilerArgs') << {
       project.compileJava.options.compilerArgs.addAll '-processorpath',
       project.configurations.apt.asPath, '-s', aptOutputDir.path
 
@@ -40,7 +40,7 @@ class AptPlugin implements Plugin<Project> {
         aptOutputDir.mkdirs()
       }
     }
-    project.tasks.getByName('compileJava').dependsOn 'addAptOptionsToCompileJava'
+    project.tasks.getByName('compileJava').dependsOn 'addAptCompilerArgs'
   }
 
   def applyToAndroidProject(androidProject) {
@@ -48,9 +48,9 @@ class AptPlugin implements Plugin<Project> {
     androidProject.plugins.getPlugin('android').extension : 
     androidProject.plugins.getPlugin('android-library').extension
     androidExtension.applicationVariants.all {
-    File aptOutputDir
-    if (!androidProject.apt.outputDirName) {
-      aptOutputDir = androidProject.file 'build/source/apt'
+      File aptOutputDir
+      if (!androidProject.apt.outputDirName) {
+        aptOutputDir = androidProject.file 'build/source/apt'
       } else {
         aptOutputDir = androidProject.file outputDirName
       }
