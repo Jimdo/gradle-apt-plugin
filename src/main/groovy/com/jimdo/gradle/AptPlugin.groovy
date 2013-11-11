@@ -22,7 +22,8 @@ class AptPlugin implements Plugin<Project> {
 
   def applyToJavaProject(project) {
     File aptOutputDir
-    if (!project.apt.outputDirName) {
+    def outputDirName = project.apt.outputDirName
+    if (!outputDirName) {
       aptOutputDir = project.file 'build/source/apt'
     } else {
       aptOutputDir = project.file outputDirName
