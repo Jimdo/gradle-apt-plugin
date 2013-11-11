@@ -21,13 +21,7 @@ class AptPlugin implements Plugin<Project> {
   }
 
   def applyToJavaProject(project) {
-    File aptOutputDir
-    def outputDirName = project.apt.outputDirName
-    if (!outputDirName) {
-      aptOutputDir = project.file 'build/source/apt'
-    } else {
-      aptOutputDir = project.file outputDirName
-    }
+    File aptOutputDir = getAptOutputDir(project)
     project.task('addAptCompilerArgs') << {
       project.compileJava.options.compilerArgs.addAll '-processorpath',
       project.configurations.apt.asPath, '-s', aptOutputDir.path
@@ -52,12 +46,7 @@ class AptPlugin implements Plugin<Project> {
       androidProject.plugins.getPlugin('android-library').extension
     
     androidExtension.applicationVariants.all {
-      File aptOutputDir
-      if (!androidProject.apt.outputDirName) {
-        aptOutputDir = androidProject.file 'build/source/apt'
-      } else {
-        aptOutputDir = androidProject.file outputDirName
-      }
+      File aptOutputDir = getAptOutputDir(project)
       File variantAptOutputDir = androidProject.file("$aptOutputDir/$dirName")
 
       androidExtension.sourceSets[sourceSetName(it)].java.srcDirs.addAll variantAptOutputDir.path
@@ -90,5 +79,13 @@ class AptPlugin implements Plugin<Project> {
 
   def sourceSetName(variant) {
     variant.dirName.split('/').last()
+  }
+
+  def getAptOutputDir(project) {
+    def aptOutputDirName = project.apt.outputDirName
+    if (!aptOutputDirName) {
+      aptOutputDirName = 'build/source/apt'
+    }
+    project.file aptOutputDirName
   }
 }
