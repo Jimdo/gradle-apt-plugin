@@ -9,13 +9,14 @@ class AptPlugin implements Plugin<Project> {
     project.configurations.create 'apt'
     project.extensions.create 'apt', AptPluginExtension
 
-    // TODO: this doesn't work if the plugin is applied after the java/android one. How to fix it?
-    if (isAndroidProject(project)) {
-      applyToAndroidProject(project)
-    } else if (isJavaProject(project)) {
-      applyToJavaProject(project)
-    } else {
-        throw new IllegalArgumentException('The project misses the java, android or android-library plugin')
+    project.afterEvaluate {
+      if (isJavaProject(project)) {
+        applyToJavaProject(project)
+      } else if (isAndroidProject(project)) {
+        applyToAndroidProject(project)
+      } else  {
+          throw new IllegalArgumentException('The project misses the java, android or android-library plugin')
+      }
     }
   }
 
