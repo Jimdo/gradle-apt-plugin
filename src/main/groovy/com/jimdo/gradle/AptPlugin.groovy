@@ -5,7 +5,7 @@ import org.gradle.api.Plugin
 
 class AptPlugin implements Plugin<Project> {
 
-  void apply(Project project) {
+  @Override void apply(Project project) {
     project.configurations.create 'apt'
     project.extensions.create 'apt', AptPluginExtension
 
@@ -40,19 +40,18 @@ class AptPlugin implements Plugin<Project> {
     project.tasks.getByName('compileJava').dependsOn 'addAptCompilerArgs'
   }
 
-  def applyToAndroidProject(androidProject) {
-    def androidExtension = androidProject.plugins.hasPlugin('android')? 
-      androidProject.plugins.getPlugin('android').extension :
-      androidProject.plugins.getPlugin('android-library').extension
+  def applyToAndroidProject(project) {
+    def androidExtension = project.plugins.hasPlugin('android')? project.plugins.getPlugin('android').extension :
+      project.plugins.getPlugin('android-library').extension
     
     androidExtension.applicationVariants.all {
       File aptOutputDir = getAptOutputDir(project)
-      File variantAptOutputDir = androidProject.file("$aptOutputDir/$dirName")
+      File variantAptOutputDir = project.file("${aptOutputDir}/${dirName}")
 
       androidExtension.sourceSets[sourceSetName(it)].java.srcDirs.addAll variantAptOutputDir.path
 
       javaCompile.options.compilerArgs.addAll '-processorpath',
-      androidProject.configurations.apt.asPath, '-s', variantAptOutputDir.path
+      project.configurations.apt.asPath, '-s', variantAptOutputDir.path
 
       javaCompile.source = javaCompile.source.filter {
         !it.path.startsWith(aptOutputDir.path)
