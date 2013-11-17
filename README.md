@@ -26,7 +26,7 @@ repositories {
 }
 ```
 
-Apply the `apt` plugin AFTER the `java`, `android` or `android-library` plugin:
+Apply the `apt` plugin:
 
 `apply plugin: 'apt'`
 
