@@ -1,0 +1,36 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'com.jimdo.gradle:gradle-apt-plugin:0.1-SNAPSHOT'
+    classpath 'com.android.tools.build:gradle:0.6.+'
+  }
+}
+
+apply plugin: 'apt'
+apply plugin: 'android'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile 'com.squareup.dagger:dagger:1.1.0'
+
+	apt 'com.squareup.dagger:dagger-compiler:1.1.0'
+}
+
+android {
+    compileSdkVersion 18
+    buildToolsVersion '18.0.1'
+
+    sourceSets {
+      main {
+        manifest.srcFile 'AndroidManifest.xml'
+        res.srcDirs = ['res']
+      }
+    }
+}
