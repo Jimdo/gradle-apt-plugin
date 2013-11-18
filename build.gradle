@@ -1,17 +1,9 @@
 apply plugin: 'groovy'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
-publishing {
-	publications {
-   maven(MavenPublication) {
-     groupId = 'com.jimdo.gradle'
-     artifactId = 'gradle-apt-plugin'
-     version = '0.1-SNAPSHOT'
-
-     from components.java
-   }
- }
-}
+group = 'com.jimdo.gradle'
+version = '0.2-SNAPSHOT'
 
 repositories {
   mavenCentral()
@@ -22,4 +14,74 @@ dependencies {
   compile "org.codehaus.groovy:groovy-all:1.8.6"
 
   testCompile "org.spockframework:spock-core:0.6-groovy-1.8"
+}
+
+artifacts {
+  archives jar
+}
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+signing {
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      beforeDeployment { deployment -> signing.signPom(deployment) }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
+        authentication(userName: sonatypeUsername, password: sonatypePassword)
+      }
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
+        authentication(userName: sonatypeUsername, password: sonatypePassword)
+      }
+
+      uniqueVersion = false
+
+      pom.project {
+
+        parent {
+          groupId 'org.sonatype.oss'
+          artifactId 'oss-parent'
+          version '7'
+        }
+
+        name 'Gradle Annotation Processing Tool Plugin'
+
+        groupId = 'com.jimdo.gradle'
+        artifactId = 'gradle-apt-plugin'
+        version = '0.2-SNAPSHOT'
+        packaging = 'jar'
+
+        url 'https://github.com/Jimdo/gradle-apt-plugin'
+        description 'Easy annotation processing with Gradle for your Java project'
+        inceptionYear '2013'
+
+        scm {
+          url 'https://github.com/Jimdo/gradle-apt-plugin'
+          connection 'scm:git:https://github.com/Jimdo/gradle-apt-plugin.git'
+          developerConnection 'scm:git:git@github.com:Jimdo/gradle-apt-plugin.git'
+        }
+
+        licenses {
+          license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+          }
+        }
+
+        developers {
+          developer {
+            id 'stefanodacchille'
+            name 'Stefano Dacchille'
+          }
+        }
+      }
+    }
+  }
 }
