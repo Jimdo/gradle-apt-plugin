@@ -3,26 +3,24 @@ Gradle Apt Plugin
 
 A Gradle plugin for the Java annotation processor tool.
 
-Usage (in progress)
+Usage
 -------------------
 
-The plugin is in early development stage and it's still not available in Maven Central. 
-To use it you have to build it locally first using `gradle build publishToMavenLocal`.
-After you built it, add the plugin to your `buildscript`'s `dependencies` closure:
+Add the plugin to your `buildscript`'s `dependencies` and add Sonatype's snapshot repository to be able to download it:
 
 ```groovy
-dependencies {
-    classpath 'com.jimdo.gradle:gradle-apt-plugin:0.1-SNAPSHOT'
-    ...
-}
-```
-
-and add your local Maven repository in the `repositories` closure:
-
-```groovy
-repositories {
-    mavenLocal()
-    ...
+buildscript {
+  dependencies {
+      repositories {
+        maven {
+          url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        ...
+      }
+      
+      classpath 'com.jimdo.gradle:gradle-apt-plugin:0.2-SNAPSHOT'
+      ...
+  }
 }
 ```
 
