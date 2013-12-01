@@ -41,10 +41,18 @@ class AptPlugin implements Plugin<Project> {
   }
 
   def applyToAndroidProject(project) {
-    def androidExtension = project.plugins.hasPlugin('android')? project.plugins.getPlugin('android').extension :
-      project.plugins.getPlugin('android-library').extension
+    def androidExtension
+    def variants
+
+    if (project.plugins.hasPlugin('android')) {
+        androidExtension = project.plugins.getPlugin('android').extension
+        variants = androidExtension.applicationVariants
+    } else {
+      androidExtension = project.plugins.getPlugin('android-library').extension
+      variants = androidExtension.libraryVariants
+    }
     
-    androidExtension.applicationVariants.all {
+    variants.all {
       File aptOutputDir = getAptOutputDir(project)
       File variantAptOutputDir = project.file("${aptOutputDir}/${dirName}")
 

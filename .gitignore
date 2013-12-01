@@ -1,6 +1,7 @@
 # Gradle-related files
 build/
 .gradle/
+gradle.properties
 
 # Mac OSX files
 .DS_Store
