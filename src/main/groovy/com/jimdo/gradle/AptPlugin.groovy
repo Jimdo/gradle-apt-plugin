@@ -45,9 +45,9 @@ class AptPlugin implements Plugin<Project> {
     def variants
 
     if (project.plugins.hasPlugin('android')) {
-        androidExtension = project.plugins.getPlugin('android').extension
-        variants = androidExtension.applicationVariants
-    } else {
+      androidExtension = project.plugins.getPlugin('android').extension
+      variants = androidExtension.applicationVariants
+    } else if (project.plugins.hasPlugin('android-library')) {
       androidExtension = project.plugins.getPlugin('android-library').extension
       variants = androidExtension.libraryVariants
     }
@@ -77,7 +77,15 @@ class AptPlugin implements Plugin<Project> {
   }
 
   def isAndroidProject(project) {
-    project.plugins.hasPlugin('android') || project.plugins.hasPlugin('android-library')
+    hasAndroidPlugin(project) || hasAndroidLibraryPlugin(project)
+  }
+
+  def hasAndroidPlugin(project) {
+    project.plugins.hasPlugin('android')
+  }
+
+  def hasAndroidLibraryPlugin(project) {
+    project.plugins.hasPlugin('android-library')
   }
 
   def isJavaProject(project) {
