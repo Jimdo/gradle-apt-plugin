@@ -43,29 +43,33 @@ class AptPlugin implements Plugin<Project> {
   def applyToAndroidProject(project) {
     def androidExtension
     def variants
+    def plugin
 
     if (project.plugins.hasPlugin('android')) {
+      plugin = project.plugins.hasPlugin('android')
       androidExtension = project.plugins.getPlugin('android').extension
       variants = androidExtension.applicationVariants
     } else if (project.plugins.hasPlugin('android-library')) {
+      plugin = project.plugins.hasPlugin('android-library')
       androidExtension = project.plugins.getPlugin('android-library').extension
       variants = androidExtension.libraryVariants
     }
     
-    variants.all {
+    variants.all { variant ->
       File aptOutputDir = getAptOutputDir(project)
       File variantAptOutputDir = project.file("${aptOutputDir}/${dirName}")
 
-      androidExtension.sourceSets[sourceSetName(it)].java.srcDirs.addAll variantAptOutputDir.path
+      androidExtension.sourceSets[sourceSetName(variant)].java.srcDirs.addAll variantAptOutputDir.path
 
       javaCompile.options.compilerArgs.addAll '-processorpath',
       project.configurations.apt.asPath, '-s', variantAptOutputDir.path
 
       javaCompile.source = javaCompile.source.filter {
-        !it.path.startsWith(aptOutputDir.path)
+        !variant.variantData.extraGeneratedSourceFolders.each { folder ->
+          folder.path.startsWith(aptOutputDir.path)
+        }
       }
 
-      def variant = it
       javaCompile.doFirst {
         logger.info "Generating sources using the annotation processing tool:"
         logger.info "  Variant: ${variant.name}"
@@ -102,5 +106,11 @@ class AptPlugin implements Plugin<Project> {
       aptOutputDirName = 'build/source/apt'
     }
     project.file aptOutputDirName
+  }
+
+  def requireAndroidPlugin073(project) {
+    //project.buildscript.configurations.classpath.resolvedConfiguration.firstLevelModuleDependencies.find { plugin ->
+      //plugin.moduleGroup == 'com.android.tools.build'
+    //}.moduleVersion
   }
 }
