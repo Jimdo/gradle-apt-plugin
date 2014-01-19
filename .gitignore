@@ -12,3 +12,7 @@ gradle.properties
 *.jar
 *.war
 *.ear
+
+# IDE files
+.idea/
+*.iml
