@@ -3,7 +3,11 @@ package com.jimdo.gradle
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 
+import org.gradle.tooling.BuildException
+
 class AptPlugin implements Plugin<Project> {
+
+  private static final String[] GRADLE_ANDROID_PLUGIN_SUPPORTED_VERSIONS = [ '0.7.0', '0.7.1', '0.7.2', '0.7.3' ]
 
   @Override void apply(Project project) {
     project.configurations.create 'apt'
@@ -15,7 +19,7 @@ class AptPlugin implements Plugin<Project> {
       } else if (isAndroidProject(project)) {
         applyToAndroidProject(project)
       } else  {
-          throw new IllegalArgumentException('The project misses the java, android or android-library plugin')
+          throw new BuildException('The project isn\'t a java or android project', null)
       }
     }
   }
@@ -41,16 +45,15 @@ class AptPlugin implements Plugin<Project> {
   }
 
   def applyToAndroidProject(project) {
+    checkGradleAndroidPlugin(project)
+
     def androidExtension
     def variants
-    def plugin
 
     if (project.plugins.hasPlugin('android')) {
-      plugin = project.plugins.hasPlugin('android')
       androidExtension = project.plugins.getPlugin('android').extension
       variants = androidExtension.applicationVariants
     } else if (project.plugins.hasPlugin('android-library')) {
-      plugin = project.plugins.hasPlugin('android-library')
       androidExtension = project.plugins.getPlugin('android-library').extension
       variants = androidExtension.libraryVariants
     }
@@ -62,7 +65,7 @@ class AptPlugin implements Plugin<Project> {
       androidExtension.sourceSets[sourceSetName(variant)].java.srcDirs.addAll variantAptOutputDir.path
 
       javaCompile.options.compilerArgs.addAll '-processorpath',
-      project.configurations.apt.asPath, '-s', variantAptOutputDir.path
+        project.configurations.apt.asPath, '-s', variantAptOutputDir.path
 
       javaCompile.source = javaCompile.source.filter {
         !variant.variantData.extraGeneratedSourceFolders.each { folder ->
@@ -108,9 +111,14 @@ class AptPlugin implements Plugin<Project> {
     project.file aptOutputDirName
   }
 
-  def requireAndroidPlugin073(project) {
-    //project.buildscript.configurations.classpath.resolvedConfiguration.firstLevelModuleDependencies.find { plugin ->
-      //plugin.moduleGroup == 'com.android.tools.build'
-    //}.moduleVersion
+  def checkGradleAndroidPlugin(project) {
+    // as in: http://stackoverflow.com/a/18119304/389262
+    def gradleAndroidPluginVersion = project.buildscript.configurations.classpath.resolvedConfiguration.firstLevelModuleDependencies.find { plugin ->
+      plugin.moduleGroup == 'com.android.tools.build'
+    }.moduleVersion
+    if (!(gradleAndroidPluginVersion in GRADLE_ANDROID_PLUGIN_SUPPORTED_VERSIONS)) {
+      throw new BuildException("Android Gradle plugin version for the current project is not supported [" + gradleAndroidPluginVersion + "]. Supported versions are: " 
+        + GRADLE_ANDROID_PLUGIN_SUPPORTED_VERSIONS.join(' ').trim(), null);
+    }
   }
 }

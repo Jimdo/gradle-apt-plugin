@@ -16,6 +16,10 @@ buildscript {
 apply plugin: 'apt'
 apply plugin: 'android'
 
+project.afterEvaluate {
+ project.tasks.lint.enabled = false
+}
+
 repositories {
 	mavenCentral()
 }
@@ -27,8 +31,8 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 18
-    buildToolsVersion '18.0.1'
+    compileSdkVersion 19
+    buildToolsVersion '19.0.1'
 
     sourceSets {
       main {
