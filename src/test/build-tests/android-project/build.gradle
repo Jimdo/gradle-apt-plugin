@@ -8,8 +8,8 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.jimdo.gradle:gradle-apt-plugin:0.3-SNAPSHOT'
-    classpath 'com.android.tools.build:gradle:0.7.3'
+    classpath 'com.jimdo.gradle:gradle-apt-plugin:0.4-SNAPSHOT'
+    classpath 'com.android.tools.build:gradle:0.8.3'
   }
 }
 
