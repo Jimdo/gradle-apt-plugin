@@ -18,7 +18,7 @@ buildscript {
         ...
       }
       
-      classpath 'com.jimdo.gradle:gradle-apt-plugin:0.2-SNAPSHOT'
+      classpath 'com.jimdo.gradle:gradle-apt-plugin:{latest-version}'
       ...
   }
 }
