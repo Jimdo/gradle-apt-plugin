@@ -115,7 +115,7 @@ class AptPlugin implements Plugin<Project> {
 
   def checkGradleAndroidPlugin(project) {
     // as in: http://stackoverflow.com/a/18119304/389262
-    def gradleAndroidPluginVersion = project.buildscript.configurations.classpath.resolvedConfiguration.firstLevelModuleDependencies.find { plugin ->
+    def gradleAndroidPluginVersion = project.rootProject.buildscript.configurations.classpath.resolvedConfiguration.firstLevelModuleDependencies.find { plugin ->
       plugin.moduleGroup == 'com.android.tools.build'
     }.moduleVersion
     if (!(gradleAndroidPluginVersion in GRADLE_ANDROID_PLUGIN_SUPPORTED_VERSIONS)) {
