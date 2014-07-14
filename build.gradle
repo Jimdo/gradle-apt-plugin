@@ -3,7 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 
 ext {
-  pluginVersion = '0.5-SNAPSHOT'
+  pluginVersion = '0.5'
 }
 
 group = 'com.jimdo.gradle'
