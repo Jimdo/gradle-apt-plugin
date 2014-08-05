@@ -52,24 +52,20 @@ class AptPlugin implements Plugin<Project> {
 
       project.logger.info("Task $taskName has APT configuration $confName applied by task $confTaskName")
 
-      project.configurations.create(confName)
-      project.extensions.create(confName, AptPluginExtension, project.buildDir, confName)
-
-      project.afterEvaluate {
-        Configuration conf = project.configurations.getByName(confName)
-        String dir = project.extensions.getByName(confName).outputDirName
-        Task confTask = project.task(confTaskName)
-        confTask.dependsOn conf
-        confTask.doFirst {
-          compileTask.configure {
-            options.compilerArgs.addAll(['-processorpath', conf.asPath])
-            options.compilerArgs.addAll(['-s', dir])
-            source = source.filter { !it.path.startsWith(dir) }
-            doFirst { new File(dir).mkdirs() }
-          }
+      Configuration conf = project.configurations.create(confName)
+      AptPluginExtension extension = project.extensions.create(confName, AptPluginExtension, project.buildDir, confName)
+      Task confTask = project.task(confTaskName)
+      confTask.dependsOn conf
+      confTask.doFirst {
+        String dir = extension.outputDirName
+        compileTask.configure {
+          options.compilerArgs.addAll(['-processorpath', conf.asPath])
+          options.compilerArgs.addAll(['-s', dir])
+          source = source.filter { !it.path.startsWith(dir) }
+          doFirst { new File(dir).mkdirs() }
         }
-        compileTask.dependsOn confTask
       }
+      compileTask.dependsOn confTask
     }
   }
 
