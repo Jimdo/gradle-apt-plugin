@@ -1,3 +1,9 @@
+# Not actively maintained
+
+This project is not actively maintained anymore, thanks to everyone who used it/gave feedback/submitted PR. 
+
+If you're using it in an Android project, have a look at [this plugin](https://bitbucket.org/hvisser/android-apt) instead. If you're using it in a java project, changes are that it's working but it won't be updated anymore. Feel free to fork it and add more features to it!
+
 Gradle Apt Plugin
 =================
 
