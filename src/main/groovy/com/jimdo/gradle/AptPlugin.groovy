@@ -24,9 +24,13 @@ class AptPlugin implements Plugin<Project> {
 
   def applyToJavaProject(project) {
     File aptOutputDir = getAptOutputDir(project)
+    File testAptOutputDir = getAptTestOutputDir(project)
     project.task('addAptCompilerArgs') << {
       project.compileJava.options.compilerArgs.addAll '-processorpath',
       project.configurations.apt.asPath, '-s', aptOutputDir.path
+
+      project.compileTestJava.options.compilerArgs.addAll '-processorpath',
+      project.configurations.apt.asPath, '-s', testAptOutputDir.path
 
       project.compileJava.source = project.compileJava.source.filter {
         !it.path.startsWith(aptOutputDir.path)
@@ -38,8 +42,20 @@ class AptPlugin implements Plugin<Project> {
 
         aptOutputDir.mkdirs()
       }
+      
+      project.compileTestJava.source = project.compileTestJava.source.filter {
+        !it.path.startsWith(testAptOutputDir.path)
+      }
+
+      project.compileTestJava.doFirst {
+        logger.info "Generating sources using the annotation processing tool:"
+        logger.info "    Output directory: ${testAptOutputDir}"
+
+        testAptOutputDir.mkdirs()
+      }
     }
     project.tasks.getByName('compileJava').dependsOn 'addAptCompilerArgs'
+    project.tasks.getByName('compileTestJava').dependsOn 'addAptCompilerArgs'
   }
 
   def applyToAndroidProject(project) {
@@ -105,5 +121,13 @@ class AptPlugin implements Plugin<Project> {
       aptOutputDirName = 'build/source/apt'
     }
     project.file aptOutputDirName
+  }
+
+  def getAptTestOutputDir(project){
+    def aptTestOutputDirName = project.apt.testOutputDirName
+    if (!aptTestOutputDirName){
+      aptTestOutputDirName = 'build/source/apt-test'
+    }
+    project.file aptTestOutputDirName
   }
 }
