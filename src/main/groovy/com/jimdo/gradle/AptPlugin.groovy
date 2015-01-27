@@ -1,48 +1,77 @@
 package com.jimdo.gradle
 
-import org.gradle.api.Project
+import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
-
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.tooling.BuildException
 
 class AptPlugin implements Plugin<Project> {
 
   @Override void apply(Project project) {
-    project.configurations.create 'apt'
-    project.extensions.create 'apt', AptPluginExtension
-
-    project.afterEvaluate {
-      if (isJavaProject(project)) {
-        applyToJavaProject(project)
-      } else if (isAndroidProject(project)) {
-        applyToAndroidProject(project)
-      } else  {
+    if (isJavaProject(project)) {
+      applyToJavaProject(project)
+    } else {
+      project.afterEvaluate {
+        if (isAndroidProject(project)) {
+          applyToAndroidProject(project)
+        } else {
           throw new BuildException('The project isn\'t a java or android project', null)
+        }
       }
     }
   }
 
-  def applyToJavaProject(project) {
-    File aptOutputDir = getAptOutputDir(project)
-    project.task('addAptCompilerArgs') << {
-      project.compileJava.options.compilerArgs.addAll '-processorpath',
-      project.configurations.apt.asPath, '-s', aptOutputDir.path
-
-      project.compileJava.source = project.compileJava.source.filter {
-        !it.path.startsWith(aptOutputDir.path)
-      }
-
-      project.compileJava.doFirst {
-        logger.info "Generating sources using the annotation processing tool:"
-        logger.info "  Output directory: ${aptOutputDir}"
-
-        aptOutputDir.mkdirs()
+  def applyToJavaProject(Project project) {
+    def tasks = []
+    project.tasks.each { Task t ->
+      if (t instanceof JavaCompile) {
+        tasks.add t
       }
     }
-    project.tasks.getByName('compileJava').dependsOn 'addAptCompilerArgs'
+    tasks.each { Task t ->
+      JavaCompile compileTask = (JavaCompile) t
+      String taskName = compileTask.name
+
+      String confName
+      def pattern = taskName =~ '^compile(.*)Java$'
+      if (pattern) {
+        String taskNamePart = pattern.group(1)
+        if (taskNamePart.isEmpty()) {
+          confName = 'apt'
+        } else {
+          confName = StringUtils.uncapitalize(taskNamePart) + 'Apt'
+        }
+      } else {
+        confName = taskName + 'Apt'
+      }
+
+      String confTaskName = 'configureAptFor' + StringUtils.capitalize(taskName)
+
+      project.logger.info("Task $taskName has APT configuration $confName applied by task $confTaskName")
+
+      Configuration conf = project.configurations.create(confName)
+      AptPluginExtension extension = project.extensions.create(confName, AptPluginExtension, project.buildDir, confName)
+      Task confTask = project.task(confTaskName)
+      confTask.dependsOn conf
+      confTask.doFirst {
+        String dir = extension.outputDirName
+        compileTask.configure {
+          options.compilerArgs.addAll(['-processorpath', conf.asPath])
+          options.compilerArgs.addAll(['-s', dir])
+          source = source.filter { !it.path.startsWith(dir) }
+          doFirst { new File(dir).mkdirs() }
+        }
+      }
+      compileTask.dependsOn confTask
+    }
   }
 
   def applyToAndroidProject(project) {
+    project.configurations.create 'apt'
+    project.extensions.create 'apt', AptPluginExtension
     def androidExtension
     def variants
 
@@ -99,11 +128,7 @@ class AptPlugin implements Plugin<Project> {
     variant.dirName.split('/').last()
   }
 
-  def getAptOutputDir(project) {
-    def aptOutputDirName = project.apt.outputDirName
-    if (!aptOutputDirName) {
-      aptOutputDirName = 'build/source/apt'
-    }
-    project.file aptOutputDirName
+  private static File getAptOutputDir(project) {
+    return project.file(project.apt.outputDirName)
   }
 }
